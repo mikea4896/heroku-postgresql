@@ -1,4 +1,4 @@
-require "pty"
+#require "pty"
 
 module Heroku::Command
   class Pgbackups < BaseWithApp
@@ -119,42 +119,43 @@ module Heroku::Command
     end
 
     def download
-      abort("Please install either the 'curl' command line tools") if `which curl` == ""
-
-      @ticks = 0
-
-      backup_id = args.shift
-      if backup_id
-        backup = pgbackup_client.get_backup(backup_id)
-      else
-        backup = pgbackup_client.get_latest_backup
-      end
-
-      outfile = File.basename(backup["to_url"])
-      abort("'#{outfile}' already exists") if File.exists? outfile
-
-      PTY.spawn("curl -o #{outfile} \"#{backup["public_url"]}\"") do |reader, writer, pid|
-        output  = ""
-        line    = ""
-        begin
-          while reader.readpartial(4096, output)
-            @ticks += 1
-            output.each_char do |char|
-              if ["\r", "\n", "\r\n"].include? char # newline?
-                vals = line.scan(/[0-9.]+[BkMG]/)
-                if vals && vals[1]
-                  redisplay "Download ... #{vals[1]}B / #{backup['size']} #{spinner(@ticks)}"
-                end
-                line = ""
-              else
-                line += char
-              end
-            end
-          end
-        rescue Errno::EIO, EOFError => e
-          redisplay "Download ... #{backup['size']} / #{backup['size']}, done\n"
-        end
-      end
+      abort("This feature has been disable due to lack of Windows support -- Myke")
+#      abort("Please install either the 'curl' command line tools") if `which curl` == ""
+#
+#      @ticks = 0
+#
+#      backup_id = args.shift
+#      if backup_id
+#        backup = pgbackup_client.get_backup(backup_id)
+#      else
+#        backup = pgbackup_client.get_latest_backup
+#      end
+#
+#      outfile = File.basename(backup["to_url"])
+#      abort("'#{outfile}' already exists") if File.exists? outfile
+#
+#      PTY.spawn("curl -o #{outfile} \"#{backup["public_url"]}\"") do |reader, writer, pid|
+#        output  = ""
+#        line    = ""
+#        begin
+#          while reader.readpartial(4096, output)
+#            @ticks += 1
+#            output.each_char do |char|
+#              if ["\r", "\n", "\r\n"].include? char # newline?
+#                vals = line.scan(/[0-9.]+[BkMG]/)
+#                if vals && vals[1]
+#                  redisplay "Download ... #{vals[1]}B / #{backup['size']} #{spinner(@ticks)}"
+#                end
+#                line = ""
+#              else
+#                line += char
+#              end
+#            end
+#          end
+#        rescue Errno::EIO, EOFError => e
+#          redisplay "Download ... #{backup['size']} / #{backup['size']}, done\n"
+#        end
+#      end
     end
 
     def destroy
